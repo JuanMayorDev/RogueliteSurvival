@@ -18,6 +18,9 @@ public class MovementController : MonoBehaviour, IMovementController
     [Header("Movement Interpolation")]
     public float acceleration = 5f;
 
+    [Header("Push Settings")]
+    public float pushForce = 2.5f; // Fuerza con la que se empuja el objeto al chocar
+
     // Flag para forzar la rotación hacia el cursor (por ejemplo, en combate)
     public bool forceCursorRotation = false;
 
@@ -37,8 +40,6 @@ public class MovementController : MonoBehaviour, IMovementController
     {
         HandleMovement();
         HandleGravity();
-        // Si se fuerza la rotación (por ejemplo, en combate), usar la dirección del cursor;
-        // de lo contrario, la rotación se basa en el input de movimiento.
         if (forceCursorRotation)
         {
             RotateTowardsCursor();
@@ -64,7 +65,6 @@ public class MovementController : MonoBehaviour, IMovementController
     {
         if (characterController.isGrounded)
         {
-            // Se guarda si se estaba sprintando al saltar
             wasSprintingBeforeJump = sprintInput;
             velocity.y = jumpForce;
         }
@@ -97,7 +97,6 @@ public class MovementController : MonoBehaviour, IMovementController
         characterController.Move(velocity * Time.deltaTime);
     }
 
-    // Rotación basada en el input de movimiento (para Exploración)
     private void HandleRotation()
     {
         Vector3 targetDirection = Vector3.zero;
@@ -112,7 +111,6 @@ public class MovementController : MonoBehaviour, IMovementController
         }
     }
 
-    // Método para rotar hacia la posición del cursor en el plano XZ
     public void RotateTowardsCursor()
     {
         Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
@@ -128,5 +126,19 @@ public class MovementController : MonoBehaviour, IMovementController
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
             }
         }
+    }
+
+    // Método que se llama cuando el CharacterController choca con otro collider.
+    private void OnControllerColliderHit(ControllerColliderHit hit)
+    {
+        // Obtener el Rigidbody del objeto con el que chocamos.
+        Rigidbody body = hit.collider.attachedRigidbody;
+        if (body == null || body.isKinematic)
+            return;
+
+        // Calcular la dirección del empuje basado en la dirección del movimiento del choque (solo en XZ).
+        Vector3 pushDirection = new Vector3(hit.moveDirection.x, 0, hit.moveDirection.z);
+        // Aplicar la fuerza de empuje.
+        body.AddForce(pushDirection * pushForce, ForceMode.Impulse);
     }
 }

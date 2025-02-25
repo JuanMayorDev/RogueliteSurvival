@@ -25,6 +25,9 @@ public interface ICombatController
     /// Executes an attack movement.
     /// </summary>
     void Attack();
+
+    public bool CanAttack();
+    public bool CanDash();
 }
 
 public interface IStaminaController
@@ -42,4 +45,22 @@ public interface IStaminaController
     /// Regenerates stamina over time.
     /// </summary>
     void RegenerateStamina();
+}
+
+public interface IHealthController
+{
+    float CurrentHealth { get; }
+    float MaxHealth { get; }
+
+    /// <summary>
+    /// Applies damage to the character.
+    /// </summary>
+    /// <param name="amount">Amount of damage.</param>
+    void TakeDamage(float amount);
+
+    /// <summary>
+    /// Heals the character.
+    /// </summary>
+    /// <param name="amount">Amount to heal.</param>
+    void Heal(float amount);
 }

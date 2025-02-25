@@ -7,15 +7,20 @@ public class PlayerController : MonoBehaviour
     private ICombatController combatController;
     private IStaminaController staminaController;
 
-    [SerializeField] private GameObject sword;
+    public GameObject sword;
 
     // Variable para almacenar el último movementInput recibido
-    private Vector2 currentMovementInput;
+    public Vector2 currentMovementInput;
 
     // Variables para estado de combate
-    private bool isInCombat = false;
+    public bool isInCombat = false;
     private float combatTimer = 0f;
     public float combatStateDuration = 5f;
+
+    // Sprint input state, se actualiza con OnSprint
+    public bool isSprinting = false;
+    // Costo de stamina al correr en combate (por segundo)
+    public float sprintStaminaCost = 15f;
 
     void Awake()
     {
@@ -26,6 +31,7 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        // Actualiza el estado de combate
         if (isInCombat)
         {
             combatTimer -= Time.deltaTime;
@@ -33,13 +39,24 @@ public class PlayerController : MonoBehaviour
             {
                 isInCombat = false;
                 sword.SetActive(false);
-                // Desactivar la rotación por cursor para volver a la rotación por movimiento
                 (movementController as MovementController).forceCursorRotation = false;
+            }
+        }
+
+        // Si se está corriendo en combate, consumir stamina cada frame.
+        if (isInCombat && isSprinting)
+        {
+            // Consume stamina proporcional al tiempo transcurrido.
+            if (!staminaController.ConsumeStamina(sprintStaminaCost * Time.deltaTime))
+            {
+                // Si no se puede consumir, se desactiva el sprint.
+                isSprinting = false;
+                (movementController as MovementController)?.SetSprintInput(false);
             }
         }
     }
 
-    // Métodos de input (vinculados desde el Player Input)
+    // Métodos de input vinculados desde el Player Input
     public void OnMove(InputAction.CallbackContext context)
     {
         Vector2 input = context.ReadValue<Vector2>();
@@ -49,8 +66,9 @@ public class PlayerController : MonoBehaviour
 
     public void OnSprint(InputAction.CallbackContext context)
     {
-        bool isSprinting = context.ReadValueAsButton();
-        (movementController as MovementController)?.SetSprintInput(isSprinting);
+        bool sprinting = context.ReadValueAsButton();
+        isSprinting = sprinting;
+        (movementController as MovementController)?.SetSprintInput(sprinting);
     }
 
     public void OnJump(InputAction.CallbackContext context)
@@ -58,7 +76,7 @@ public class PlayerController : MonoBehaviour
         if (context.started)
         {
             movementController.Jump();
-            // El salto no activa el estado de combate
+            // El salto no activa el estado de combate.
         }
     }
 
@@ -66,7 +84,7 @@ public class PlayerController : MonoBehaviour
     {
         if (context.started)
         {
-            if (staminaController.ConsumeStamina(20f))
+            if (combatController.CanDash() && staminaController.ConsumeStamina(20f))
             {
                 combatController.Dash(currentMovementInput);
                 EnterCombatState();
@@ -78,9 +96,8 @@ public class PlayerController : MonoBehaviour
     {
         if (context.started)
         {
-            if (staminaController.ConsumeStamina(10f))
+            if (combatController.CanAttack() && staminaController.ConsumeStamina(10f))
             {
-                // Antes de atacar, ya se estará rotando hacia el cursor
                 combatController.Attack();
                 EnterCombatState();
             }
@@ -92,7 +109,6 @@ public class PlayerController : MonoBehaviour
         isInCombat = true;
         combatTimer = combatStateDuration;
         sword.SetActive(true);
-        // Forzar la rotación hacia el cursor en combate
         (movementController as MovementController).forceCursorRotation = true;
     }
 }

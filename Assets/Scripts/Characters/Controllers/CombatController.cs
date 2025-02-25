@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(CharacterController))]
+[RequireComponent(typeof(CharacterController), (typeof(CharacterAnimationController)))]
 public class CombatController : MonoBehaviour, ICombatController
 {
     private CharacterController characterController;
@@ -22,16 +22,22 @@ public class CombatController : MonoBehaviour, ICombatController
     public float attackCooldown = 0.5f;
     private bool isAttackOnCooldown = false;
 
+    private CharacterAnimationController animationController;
+
     void Start()
     {
         characterController = GetComponent<CharacterController>();
+        animationController = GetComponent<CharacterAnimationController>();
     }
 
     // Ahora Dash recibe el movementInput
     public void Dash(Vector2 movementInput)
     {
         if (!isDashing)
+        {
+            animationController.PlayDashAnimation();
             StartCoroutine(PerformDash(movementInput));
+        }
     }
 
     // Se añade la comprobación del cooldown en Attack
@@ -41,6 +47,10 @@ public class CombatController : MonoBehaviour, ICombatController
             return; // Si está en cooldown, no se ejecuta el ataque
 
         isAttackOnCooldown = true;
+        if (animationController != null)
+        {
+            animationController.PlayAttackAnimation();
+        }
         StartCoroutine(PerformAttackMove());
         StartCoroutine(AttackCooldownCoroutine());
     }
@@ -93,5 +103,15 @@ public class CombatController : MonoBehaviour, ICombatController
         }
         // Aseguramos la posición final exacta
         characterController.Move(targetPosition - transform.position);
+    }
+
+    public bool CanAttack()
+    {
+        return !isAttackOnCooldown;
+    }
+
+    public bool CanDash()
+    {
+        return !isDashing;
     }
 }
