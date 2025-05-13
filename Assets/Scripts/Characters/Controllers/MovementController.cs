@@ -19,12 +19,12 @@ public class MovementController : MonoBehaviour, IMovementController
     public float acceleration = 5f;
 
     [Header("Push Settings")]
-    public float pushForce = 2.5f; // Fuerza con la que se empuja el objeto al chocar
+    public float pushForce = 2.5f; // Force with which the object is pushed upon collision
 
-    // Flag para forzar la rotación hacia el cursor (por ejemplo, en combate)
+    // Flag to force rotation towards the cursor (e.g., in combat)
     public bool forceCursorRotation = false;
 
-    // Variables para manejo del sprint
+    // Variables for sprint management
     [HideInInspector]
     public bool wasSprintingBeforeJump = false;
     private Vector2 movementInput;
@@ -128,17 +128,17 @@ public class MovementController : MonoBehaviour, IMovementController
         }
     }
 
-    // Método que se llama cuando el CharacterController choca con otro collider.
+    // Method called when the CharacterController collides with another collider.
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
-        // Obtener el Rigidbody del objeto con el que chocamos.
+        // Get the Rigidbody of the object we collided with.
         Rigidbody body = hit.collider.attachedRigidbody;
         if (body == null || body.isKinematic)
             return;
 
-        // Calcular la dirección del empuje basado en la dirección del movimiento del choque (solo en XZ).
+        // Calculate the push direction based on the collision movement direction (only in XZ).
         Vector3 pushDirection = new Vector3(hit.moveDirection.x, 0, hit.moveDirection.z);
-        // Aplicar la fuerza de empuje.
+        // Apply the push force.
         body.AddForce(pushDirection * pushForce, ForceMode.Impulse);
     }
 }

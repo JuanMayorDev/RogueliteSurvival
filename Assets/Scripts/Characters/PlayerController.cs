@@ -9,17 +9,17 @@ public class PlayerController : MonoBehaviour
 
     public GameObject sword;
 
-    // Variable para almacenar el último movementInput recibido
+    // Variable to store the last movementInput received
     public Vector2 currentMovementInput;
 
-    // Variables para estado de combate
+    // Variables for combat state
     public bool isInCombat = false;
     private float combatTimer = 0f;
     public float combatStateDuration = 5f;
 
-    // Sprint input state, se actualiza con OnSprint
+    // Sprint input state, updated with OnSprint
     public bool isSprinting = false;
-    // Costo de stamina al correr en combate (por segundo)
+    // Stamina cost when sprinting in combat (per second)
     public float sprintStaminaCost = 15f;
 
     void Awake()
@@ -31,7 +31,7 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        // Actualiza el estado de combate
+        // Update the combat state
         if (isInCombat)
         {
             combatTimer -= Time.deltaTime;
@@ -43,20 +43,20 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // Si se está corriendo en combate, consumir stamina cada frame.
+        // If sprinting in combat, consume stamina every frame.
         if (isInCombat && isSprinting)
         {
-            // Consume stamina proporcional al tiempo transcurrido.
+            // Consume stamina proportional to the time passed.
             if (!staminaController.ConsumeStamina(sprintStaminaCost * Time.deltaTime))
             {
-                // Si no se puede consumir, se desactiva el sprint.
+                // If it can't be consumed, disable sprinting.
                 isSprinting = false;
                 (movementController as MovementController)?.SetSprintInput(false);
             }
         }
     }
 
-    // Métodos de input vinculados desde el Player Input
+    // Input methods bound from Player Input
     public void OnMove(InputAction.CallbackContext context)
     {
         Vector2 input = context.ReadValue<Vector2>();
@@ -76,7 +76,7 @@ public class PlayerController : MonoBehaviour
         if (context.started)
         {
             movementController.Jump();
-            // El salto no activa el estado de combate.
+            // Jumping does not activate the combat state.
         }
     }
 

@@ -8,10 +8,10 @@ public class HealthController : MonoBehaviour, IHealthController
     [SerializeField] private float maxHealth = 100f;
     private float currentHealth = 100f;
 
-    // Slider para mostrar la vida actual
+    // Slider to display current health
     public Slider healthSlider;
 
-    // Evento para notificar la muerte (puedes asignarlo desde el Inspector)
+    // Event to notify death (can be assigned from the Inspector)
     public UnityEvent onDeath;
 
     public float CurrentHealth => currentHealth;
@@ -59,7 +59,7 @@ public class HealthController : MonoBehaviour, IHealthController
         {
             onDeath.Invoke();
         }
-        // Lógica adicional de muerte (por ejemplo, reproducir animación o reiniciar el nivel)
+        // Additional death logic (e.g., play animation or restart level)
         gameObject.SetActive(false);
     }
 }

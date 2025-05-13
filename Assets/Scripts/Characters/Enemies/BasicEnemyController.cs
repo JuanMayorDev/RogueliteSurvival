@@ -3,17 +3,18 @@ using UnityEngine.AI;
 
 public class BasicEnemyController : MonoBehaviour
 {
-    public Transform[] patrolPoints;      // Waypoints de patrullaje
+    public Transform[] patrolPoints;      // Patrol waypoints
     private int currentPatrolIndex = 0;
     private NavMeshAgent agent;
 
-    public float detectionRange = 10f;      // Rango para detectar al jugador
-    public float attackRange = 2f;          // Rango para iniciar el ataque
-    public float chaseDistanceLimit = 15f;  // Si el jugador está más lejos, el enemigo abandona la persecución
+    public float detectionRange = 10f;      // Range to detect the player
+    public float attackRange = 2f;          // Range to initiate the attack
+    public float chaseDistanceLimit = 15f;  // If the player is further away, the enemy stops chasing
 
     [Header("Attack Settings")]
-    public float attackCooldown = 1.0f;     // Tiempo entre ataques
+    public float attackCooldown = 1.0f;    // Time between attacks
     private float attackTimer = 0f;
+    private HealthController playerHealthController;
 
     public enum EnemyState { Patrolling, Chasing, Attacking }
     public EnemyState currentState = EnemyState.Patrolling;
@@ -24,14 +25,20 @@ public class BasicEnemyController : MonoBehaviour
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
-        // Se asume que el enemigo tiene un HealthController en el mismo GameObject
+        // Assumes the enemy has a HealthController on the same GameObject
         healthController = GetComponent<HealthController>();
 
-        // Se busca el jugador por su etiqueta "Player"
+        // Finds the player by its "Player" tag
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        //Take the component HealthController of the player
         if (playerObj != null)
         {
             playerTransform = playerObj.transform;
+            playerHealthController = playerObj.GetComponent<HealthController>();
+            if (playerHealthController == null)
+            {
+                Debug.LogWarning("Player no tiene un componente que implemente IHealthController");
+            }
         }
 
         if (patrolPoints.Length > 0)
@@ -88,7 +95,7 @@ public class BasicEnemyController : MonoBehaviour
 
         float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
 
-        // Si el jugador se aleja demasiado, vuelve a patrullar
+        // If the player moves too far away, the enemy goes back to patrolling
         if (distanceToPlayer > chaseDistanceLimit)
         {
             currentState = EnemyState.Patrolling;
@@ -96,7 +103,7 @@ public class BasicEnemyController : MonoBehaviour
             return;
         }
 
-        // Si el jugador está lo suficientemente cerca, cambia a ataque
+        // If the player is close enough, switch to attack
         if (distanceToPlayer <= attackRange)
         {
             currentState = EnemyState.Attacking;
@@ -114,7 +121,7 @@ public class BasicEnemyController : MonoBehaviour
         if (playerTransform == null)
             return;
 
-        // Hacer que el enemigo mire hacia el jugador
+        // Make the enemy look at the player
         Vector3 direction = (playerTransform.position - transform.position).normalized;
         Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
         transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 5f);
@@ -122,12 +129,18 @@ public class BasicEnemyController : MonoBehaviour
         attackTimer += Time.deltaTime;
         if (attackTimer >= attackCooldown)
         {
-            // Lógica de ataque (aquí podrías aplicar daño al jugador o reproducir una animación)
+            // Attack logic (here you could apply damage to the player or play an animation)
             Debug.Log("Enemy attacks the player!");
+            if (playerHealthController != null)
+            {
+                float damageAmount = 20f;
+                playerHealthController.TakeDamage(damageAmount);
+            }
+
             attackTimer = 0f;
         }
 
-        // Si el jugador se aleja, vuelve al estado de persecución
+        // If the player moves away, return to chasing state
         float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
         if (distanceToPlayer > attackRange)
         {
@@ -138,13 +151,14 @@ public class BasicEnemyController : MonoBehaviour
     }
 
     // Método para aplicar daño al enemigo al recibir un ataque (por ejemplo, cuando colisiona con la espada del jugador)
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("PlayerWeapon"))
-        {
-            // Se aplica un daño fijo; puedes ajustar este valor según tus necesidades.
-            float damage = 20f;
-            healthController.TakeDamage(damage);
-        }
-    }
+    //private void OnTriggerEnter(Collider other)
+    //{
+    //    if (other.CompareTag("PlayerWeapon"))
+    //    {
+    //        Debug.Log("golpie con la espada");
+    //        Se aplica un daño fijo; puedes ajustar este valor según tus necesidades.
+    //        float damage = 20f;
+    //        healthController.TakeDamage(damage);
+    //    }
+    //}
 }

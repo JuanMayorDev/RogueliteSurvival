@@ -1,6 +1,5 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController), (typeof(CharacterAnimationController)))]
 public class CombatController : MonoBehaviour, ICombatController
@@ -22,6 +21,12 @@ public class CombatController : MonoBehaviour, ICombatController
     public float attackCooldown = 0.5f;
     private bool isAttackOnCooldown = false;
 
+    [Header("Attack Hit Settings")]
+    public float hitDamage = 20f;
+    public float attackRadius = 0.5f;
+    public float attackRange = 1.5f;
+    public LayerMask enemyLayer;
+
     private CharacterAnimationController animationController;
 
     void Start()
@@ -30,7 +35,7 @@ public class CombatController : MonoBehaviour, ICombatController
         animationController = GetComponent<CharacterAnimationController>();
     }
 
-    // Ahora Dash recibe el movementInput
+    // Now Dash receives the movementInput
     public void Dash(Vector2 movementInput)
     {
         if (!isDashing)
@@ -40,11 +45,11 @@ public class CombatController : MonoBehaviour, ICombatController
         }
     }
 
-    // Se añade la comprobación del cooldown en Attack
+    // Added cooldown check in Attack
     public void Attack()
     {
         if (isAttackOnCooldown)
-            return; // Si está en cooldown, no se ejecuta el ataque
+            return; // If it's on cooldown, the attack won't execute
 
         isAttackOnCooldown = true;
         if (animationController != null)
@@ -54,8 +59,7 @@ public class CombatController : MonoBehaviour, ICombatController
         StartCoroutine(PerformAttackMove());
         StartCoroutine(AttackCooldownCoroutine());
     }
-
-    // Coroutine para restablecer el cooldown del ataque
+    // Coroutine to reset the attack cooldown
     private IEnumerator AttackCooldownCoroutine()
     {
         yield return new WaitForSeconds(attackCooldown);
@@ -81,7 +85,7 @@ public class CombatController : MonoBehaviour, ICombatController
             elapsedTime += Time.deltaTime;
             yield return null;
         }
-        // Ajusta la posición final de forma exacta
+        // Adjust the final position precisely
         characterController.Move(targetPosition - transform.position);
         isDashing = false;
     }
@@ -91,6 +95,8 @@ public class CombatController : MonoBehaviour, ICombatController
         Vector3 startPosition = transform.position;
         Vector3 targetPosition = startPosition + transform.forward * attackMoveDistance;
         float elapsedTime = 0f;
+        bool didHit = false;
+
         while (elapsedTime < attackMoveDuration)
         {
             float progress = elapsedTime / attackMoveDuration;
@@ -98,10 +104,28 @@ public class CombatController : MonoBehaviour, ICombatController
             Vector3 newPosition = Vector3.Lerp(startPosition, targetPosition, curveValue);
             Vector3 moveStep = newPosition - transform.position;
             characterController.Move(moveStep);
+            //Hit once at the middle of the animation.
+            if (!didHit && progress >= 0.5f)
+            {
+                RaycastHit hit;
+                Vector3 origin = transform.position + Vector3.up;
+                Vector3 direction = transform.forward; 
+                if (Physics.SphereCast(origin, attackRadius, direction, out hit, attackRange, enemyLayer))
+                {
+                    IHealthController enemyHealth = hit.collider.GetComponent<IHealthController>();
+                    if (enemyHealth != null)
+                    {
+                        enemyHealth.TakeDamage(hitDamage);
+                        Debug.Log("Enemy hit with SphereCast!");
+                    }
+                    didHit = true;
+                }
+            }
             elapsedTime += Time.deltaTime;
             yield return null;
         }
-        // Aseguramos la posición final exacta
+
+        // Ensure the exact final position
         characterController.Move(targetPosition - transform.position);
     }
 

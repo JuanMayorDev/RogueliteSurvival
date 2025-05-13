@@ -15,38 +15,38 @@ public class CharacterAnimationController : MonoBehaviour
     void Awake()
     {
         characterController = GetComponent<CharacterController>();
-        playerController = GetComponent<PlayerController>(); // Asumiendo que el PlayerController está en el mismo GameObject.
-    }
+        playerController = GetComponent<PlayerController>(); // // Assuming the PlayerController is on the same GameObject.
 
-    void Update()
-    {
-        UpdateMovementAnimation();
-        UpdateCombatAnimation();
-    }
-
-    /// <summary>
-    /// Update the "Speed" parameter based on the character's velocity magnitude.
-    /// </summary>
-    void UpdateMovementAnimation()
-    {
-        // Calcula la velocidad usando la magnitud del vector de velocidad.
-        float speed = playerController.currentMovementInput.magnitude > 0 ? playerController.isSprinting ? 1 : 0.5f : 0;
-        animator.SetFloat("Speed", speed);
-    }
-
-    /// <summary>
-    /// Update a combat state parameter.
-    /// Here we use the state of the sword (active in combat) as an example.
-    /// </summary>
-    void UpdateCombatAnimation()
-    {
-        // Por ejemplo, si la espada está activa, asumimos que estamos en combate.
-        bool isInCombat = false;
-        if (playerController != null)
+        void Update()
         {
-            isInCombat = playerController.isInCombat;
+            UpdateMovementAnimation();
+            UpdateCombatAnimation();
         }
-        animator.SetBool("IsInCombat", isInCombat);
+
+        /// <summary>
+        /// Update the "Speed" parameter based on the character's velocity magnitude.
+        /// </summary>
+        void UpdateMovementAnimation()
+        {
+            // Calcula la velocidad usando la magnitud del vector de velocidad.
+            float speed = playerController.currentMovementInput.magnitude > 0 ? playerController.isSprinting ? 1 : 0.5f : 0;
+            animator.SetFloat("Speed", speed);
+        }
+
+        /// <summary>
+        /// Update a combat state parameter.
+        /// Here we use the state of the sword (active in combat) as an example.
+        /// </summary>
+        void UpdateCombatAnimation()
+        {
+            // For example, if the sword is active, we assume we are in combat.
+            bool isInCombat = false;
+            if (playerController != null)
+            {
+                isInCombat = playerController.isInCombat;
+            }
+            animator.SetBool("IsInCombat", isInCombat);
+        }
     }
 
     /// <summary>
