@@ -10,12 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: aedee1eff683a6949a26fb0a2a256c15, type: 3}
-  m_Name: TestItem
+  m_Name: CircleTestItem
   m_EditorClassIdentifier: 
-  icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
-  id: NullItemID
-  displayName: Null Item
-  type: 3
-  prefab: {fileID: 0}
+  icon: {fileID: -392231473, guid: ca8fe4928dcb85c42ab87ffa1007b25f, type: 3}
+  id: testCircle
+  displayName: Circle
+  type: 0
+  stackLimit: 10
   description: Item description.
-  stackLimit: 1
